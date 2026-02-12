@@ -1,4 +1,5 @@
 import numpy as np
+import random as rand
 
 class Maze:
     
@@ -14,8 +15,7 @@ class Maze:
         self.navigation_map = np.zeros((H,W))
         self.reward_map = np.zeros((H,W))
 
-
-        pass
+        self.generateMaze(0.0)
 
     def is_in_bounds(self,y,x):
         if(x>self.W or x<0):
@@ -39,6 +39,13 @@ class Maze:
                 if(self.is_walkeable(y,x+j)):
                     neighbors.append([y,x+j])
         return neighbors
+    
+    def generateMaze(self,prob=0.5):
+        for y in range(self.H):
+            for x in range(self.W):
+                self.navigation_map[y][x] = (rand.random()>prob)
+        self.navigation_map[self.start_node] = 0
+        self.navigation_map[self.end_node] = 0
         
             
            
