@@ -3,9 +3,10 @@ import random as rand
 
 class Maze:
     
-    def __init__(self,H,W,start_node,end_node):
+    def __init__(self,H,W,start_node,end_node,diagonal = 0):
         self.H = H
         self.W = W
+        self.diagonal = diagonal
         if(len(start_node)!=2):
             return False
         if(len(end_node)!=2):
@@ -15,7 +16,7 @@ class Maze:
         self.navigation_map = np.zeros((H,W))
         self.reward_map = np.zeros((H,W))
 
-        self.generateMaze()
+        self.generateMaze(1)
         self.generateReward()
 
     def is_in_bounds(self,y,x):
@@ -28,7 +29,7 @@ class Maze:
     def is_walkeable(self,y,x):
         return not(self.navigation_map[y][x])
     
-    def get_neighbors(self,y,x):
+    def _get_neighbors_straight(self,y,x):
         neighbors = []
         print("Neighbors of (",y,",",x,")" )
         for i in (-1,1):
@@ -40,6 +41,23 @@ class Maze:
                 if(self.is_walkeable(y,x+j)):
                     neighbors.append([y,x+j])
         return neighbors
+    
+    def _get_neighbors_diag(self,y,x):
+        neighbors = []
+        print("Neighbors of (",y,",",x,")" )
+        for i in (-1,0,1):
+            for j in (-1,0,1):
+                if(self.is_in_bounds(y+i,x+j)):
+                    if(self.is_walkeable(y+i,x+j)):
+                        neighbors.append([y+i,x+j])
+        neighbors.remove([y,x])
+        return neighbors
+    
+    def get_neighbors(self,y,x):
+        if(self.diagonal):
+            return self._get_neighbors_diag(y,x)
+        else:
+            return self._get_neighbors_straight(y,x)
     
     def generateMaze(self,prob=0.5):
         for y in range(self.H):
