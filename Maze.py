@@ -31,12 +31,10 @@ class Maze:
         neighbors = []
         print("Neighbors of (",y,",",x,")" )
         for i in (-1,1):
-                print("Testing(",y+i,",",x,")")
                 if(self.is_in_bounds(y+i,x)):
                     if(self.is_walkeable(y+i,x)):
                         neighbors.append([y+i,x])
         for j in (-1,1):
-            print("Testing(",y,",",x+j,")")
             if(self.is_in_bounds(y,x+j)):
                 if(self.is_walkeable(y,x+j)):
                     neighbors.append([y,x+j])
