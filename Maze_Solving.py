@@ -1,6 +1,8 @@
 import numpy as np
 import random as rand
 
+
+
 class Maze:
     
     def __init__(self,H,W,start_node,end_node,diagonal = 0):

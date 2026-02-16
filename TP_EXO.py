@@ -1,4 +1,4 @@
-from Maze import Maze
+from Maze_Solving import Maze
 
 
 
