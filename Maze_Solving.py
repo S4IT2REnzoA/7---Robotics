@@ -82,11 +82,12 @@ class Maze:
         g_scores = {start : 0}
         f_scores = {start : tools.manhattan_dist(end,start)}
         origins = {}
-        queue.append([0,start])
+        queue.append((f_scores[start],start))
         while(queue):
-            current_tile = min(queue[:][1])
+            current_entry = min(queue)
+            current_tile = current_entry[1]
             index = queue.index(current_tile)
-            queue.pop(index)
+            queue.remove(current_entry)
             if(current_tile==end):
                 ##Return the path to the end
                 return
@@ -95,8 +96,9 @@ class Maze:
                 if neighbor not in g_scores or temp_g < g_scores[neighbor]:
                     origins[neighbor] = current_tile
                     g_scores[neighbor] = temp_g
-                    f_scores[neighbor] = temp_g + tools.euclidean_dist(end,neighbor)
-                    queue.append(neighbor)
+                    f = temp_g + tools.manhattan_dist(end,neighbor)
+                    f_scores[neighbor] = f
+                    queue.append((f,neighbor))
         return None
 
 
