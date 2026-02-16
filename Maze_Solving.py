@@ -89,7 +89,7 @@ class Maze:
             index = queue.index(current_tile)
             queue.remove(current_entry)
             if(current_tile==end):
-                ##Return the path to the end
+                path = self.returnPath(origins,start,end)
                 return
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
@@ -100,6 +100,15 @@ class Maze:
                     f_scores[neighbor] = f
                     queue.append((f,neighbor))
         return None
+
+    def returnPath(self, origins,start, end):
+        reversed_path = []
+        previous_tile = origins[end]
+        reversed_path.append(previous_tile)
+        while(previous_tile!=start):
+            previous_tile = origins[previous_tile]
+        path = reversed_path.reverse()
+        return path
 
 
             
