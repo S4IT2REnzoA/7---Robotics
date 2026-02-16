@@ -52,7 +52,7 @@ class Maze:
                 if(self.is_in_bounds(y+i,x+j)):
                     if(self.is_walkeable(y+i,x+j)):
                         neighbors.append((y+i,x+j))
-        neighbors.remove([y,x])
+        neighbors.remove((y,x))
         return neighbors
     
     def get_neighbors(self,y,x):
@@ -88,7 +88,7 @@ class Maze:
             queue.remove(current_entry)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
-                return
+                return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
                 if neighbor not in g_scores.keys() or temp_g < g_scores[neighbor]:
@@ -100,12 +100,13 @@ class Maze:
         return None
 
     def returnPath(self, origins,start, end):
-        reversed_path = []
+        path = [end]
         previous_tile = origins[end]
-        reversed_path.append(previous_tile)
+        path.append(previous_tile)
         while(previous_tile!=start):
             previous_tile = origins[previous_tile]
-        path = reversed_path.reverse()
+            path.append(previous_tile)
+        path.reverse()
         return path
 
 
