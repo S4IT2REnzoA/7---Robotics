@@ -72,5 +72,8 @@ class Maze:
                 if(self.is_walkeable(y,x)):
                     self.reward_map[y][x] = 1
         self.reward_map[self.end_node] = -10
-        
+    
+    def solve(self, method):
+
+        return None
            
