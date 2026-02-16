@@ -18,13 +18,13 @@ class Maze:
         self.navigation_map = np.zeros((H,W))
         self.reward_map = np.zeros((H,W))
 
-        self.generateMaze()
+        self.generateMaze(0.8)
         self.generateReward()
 
     def is_in_bounds(self,y,x):
-        if(x>self.W or x<0):
+        if(x>=self.W or x<0):
             return False
-        if(y>self.H or y<0):
+        if(y>=self.H or y<0):
             return False
         return True
 
