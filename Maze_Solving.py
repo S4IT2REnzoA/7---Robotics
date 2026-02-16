@@ -1,6 +1,6 @@
 import numpy as np
 import random as rand
-
+import tools
 
 
 class Maze:
@@ -75,6 +75,36 @@ class Maze:
                     self.reward_map[y][x] = 1
         self.reward_map[self.end_node] = -10
     
+
+    def a_star(self,start,end):
+        queue = []
+
+        g_scores = {start : 0}
+        f_scores = {start : tools.manhattan_dist(end,start)}
+        origins = {}
+        queue.append([0,start])
+        while(queue):
+            current_tile = min(queue[:][1])
+            index = queue.index(current_tile)
+            queue.pop(index)
+            if(current_tile==end):
+                ##Return the path to the end
+                return
+            for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
+                temp_g = g_scores[current_tile] + self.reward_map[neighbor]
+                if neighbor not in g_scores or temp_g < g_scores[neighbor]:
+                    origins[neighbor] = current_tile
+                    g_scores[neighbor] = temp_g
+                    f_scores[neighbor] = temp_g + tools.euclidean_dist(end,neighbor)
+                    queue.append(neighbor)
+        return None
+
+
+            
+
+
+
+
     def solve(self, method):
 
         return None
