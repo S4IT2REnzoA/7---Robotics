@@ -33,7 +33,6 @@ class Maze:
     
     def _get_neighbors_straight(self,y,x):
         neighbors = []
-        print("Neighbors of (",y,",",x,")" )
         for i in (-1,1):
                 if(self.is_in_bounds(y+i,x)):
                     if(self.is_walkeable(y+i,x)):
