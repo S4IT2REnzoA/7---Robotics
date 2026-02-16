@@ -37,11 +37,11 @@ class Maze:
         for i in (-1,1):
                 if(self.is_in_bounds(y+i,x)):
                     if(self.is_walkeable(y+i,x)):
-                        neighbors.append([y+i,x])
+                        neighbors.append((y+i,x))
         for j in (-1,1):
             if(self.is_in_bounds(y,x+j)):
                 if(self.is_walkeable(y,x+j)):
-                    neighbors.append([y,x+j])
+                    neighbors.append((y,x+j))
         return neighbors
     
     def _get_neighbors_diag(self,y,x):
@@ -51,7 +51,7 @@ class Maze:
             for j in (-1,0,1):
                 if(self.is_in_bounds(y+i,x+j)):
                     if(self.is_walkeable(y+i,x+j)):
-                        neighbors.append([y+i,x+j])
+                        neighbors.append((y+i,x+j))
         neighbors.remove([y,x])
         return neighbors
     
@@ -78,7 +78,6 @@ class Maze:
 
     def a_star(self,start,end):
         queue = []
-
         g_scores = {start : 0}
         f_scores = {start : tools.manhattan_dist(end,start)}
         origins = {}
@@ -86,14 +85,13 @@ class Maze:
         while(queue):
             current_entry = min(queue)
             current_tile = current_entry[1]
-            index = queue.index(current_tile)
             queue.remove(current_entry)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
                 return
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
-                if neighbor not in g_scores or temp_g < g_scores[neighbor]:
+                if neighbor not in g_scores.keys() or temp_g < g_scores[neighbor]:
                     origins[neighbor] = current_tile
                     g_scores[neighbor] = temp_g
                     f = temp_g + tools.manhattan_dist(end,neighbor)
@@ -118,5 +116,5 @@ class Maze:
 
     def solve(self, method):
 
-        return None
+        return method(self.start_node,self.end_node)
            
