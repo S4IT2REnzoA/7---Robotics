@@ -5,10 +5,11 @@ import tools
 
 class Maze:
     
-    def __init__(self,H,W,start_node,end_node,diagonal = 0):
+    def __init__(self,H,W,start_node,end_node,diagonal = 0,window = 0):
         self.H = H
         self.W = W
         self.diagonal = diagonal
+        self.window = window
         if(len(start_node)!=2):
             return False
         if(len(end_node)!=2):
