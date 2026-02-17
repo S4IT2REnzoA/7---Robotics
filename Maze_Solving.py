@@ -1,9 +1,13 @@
 import numpy as np
 import random as rand
 import tools
+import pygame
+
 
 
 class Maze:
+    MAZE_DISPLAY_H = 400
+    MAZE_DISPLAY_W = 400
     
     def __init__(self,H,W,start_node,end_node,diagonal = 0,window = 0):
         self.H = H
@@ -19,7 +23,7 @@ class Maze:
         self.navigation_map = np.zeros((H,W))
         self.reward_map = np.zeros((H,W))
 
-        self.generateMaze(0.8)
+        self.generateMaze(0.5)
         self.generateReward()
 
     def is_in_bounds(self,y,x):
@@ -134,7 +138,18 @@ class Maze:
             path.append(previous_tile)
         path.reverse()
         return path
+    def displayMaze(self):
+        step_x = self.MAZE_DISPLAY_W/self.W
+        step_y = self.MAZE_DISPLAY_H/self.H
+        for y in range(self.H):
+            for x in range(self.W):
+                if(self.is_walkeable(y,x)):
+                    pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
+                else:
+                    pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
+            
 
+            
 
             
 
