@@ -97,6 +97,24 @@ class Maze:
                     f_scores[neighbor] = f
                     queue.append((f,neighbor))
         return None
+    def Dijkstra(self,start,end):
+        queue = []
+        g_scores = {start : 0}
+        origins = {}
+        queue.append((0,start))
+        while(queue):
+            current_entry = min(queue)
+            current_tile = current_entry[1]
+            queue.remove(current_entry)
+            if(current_tile==end):
+                path = self.returnPath(origins,start,end)
+                return path
+            for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
+                temp_g = g_scores[current_tile] + self.reward_map[neighbor]
+                if neighbor not in g_scores.keys() or temp_g < g_scores[neighbor]:
+                    origins[neighbor] = current_tile
+                    g_scores[neighbor] = temp_g
+                    queue.append((temp_g,neighbor))
 
     def returnPath(self, origins,start, end):
         path = [end]
