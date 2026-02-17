@@ -88,7 +88,7 @@ class Maze:
             queue.remove(current_entry)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
-                print("A* explored ",nodes_explored, "before finding the end\n")
+                print("A* explored ",nodes_explored, "before finding the end")
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
@@ -112,7 +112,7 @@ class Maze:
             queue.remove(current_entry)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
-                print("Dijkstra explored ",nodes_explored, "before finding the end\n")
+                print("Dijkstra explored ",nodes_explored, "before finding the end")
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
