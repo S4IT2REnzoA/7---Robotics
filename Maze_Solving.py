@@ -83,6 +83,7 @@ class Maze:
         nodes_explored = 0
         queue.append((f_scores[start],start))
         while(queue):
+            nodes_explored +=1
             current_entry = min(queue)
             current_tile = current_entry[1]
             queue.remove(current_entry)
@@ -98,7 +99,7 @@ class Maze:
                     f = temp_g + tools.manhattan_dist(end,neighbor)
                     f_scores[neighbor] = f
                     queue.append((f,neighbor))
-                    nodes_explored +=1
+                    
         return None
     def Dijkstra(self,start,end):
         queue = []
@@ -107,6 +108,7 @@ class Maze:
         nodes_explored = 0
         queue.append((0,start))
         while(queue):
+            nodes_explored +=1
             current_entry = min(queue)
             current_tile = current_entry[1]
             queue.remove(current_entry)
@@ -120,7 +122,7 @@ class Maze:
                     origins[neighbor] = current_tile
                     g_scores[neighbor] = temp_g
                     queue.append((temp_g,neighbor))
-                    nodes_explored +=1
+                    
 
     def returnPath(self, origins,start, end):
         path = [end]
