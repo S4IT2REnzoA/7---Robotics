@@ -80,6 +80,7 @@ class Maze:
         g_scores = {start : 0}
         f_scores = {start : tools.manhattan_dist(end,start)}
         origins = {}
+        nodes_explored = 0
         queue.append((f_scores[start],start))
         while(queue):
             current_entry = min(queue)
@@ -87,6 +88,7 @@ class Maze:
             queue.remove(current_entry)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
+                print("A* explored ",nodes_explored, "before finding the end\n")
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
@@ -96,11 +98,13 @@ class Maze:
                     f = temp_g + tools.manhattan_dist(end,neighbor)
                     f_scores[neighbor] = f
                     queue.append((f,neighbor))
+                    nodes_explored +=1
         return None
     def Dijkstra(self,start,end):
         queue = []
         g_scores = {start : 0}
         origins = {}
+        nodes_explored = 0
         queue.append((0,start))
         while(queue):
             current_entry = min(queue)
@@ -108,6 +112,7 @@ class Maze:
             queue.remove(current_entry)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
+                print("Dijkstra explored ",nodes_explored, "before finding the end\n")
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
@@ -115,6 +120,7 @@ class Maze:
                     origins[neighbor] = current_tile
                     g_scores[neighbor] = temp_g
                     queue.append((temp_g,neighbor))
+                    nodes_explored +=1
 
     def returnPath(self, origins,start, end):
         path = [end]
