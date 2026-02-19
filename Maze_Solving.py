@@ -96,6 +96,7 @@ class Maze:
             nodes_explored.append(current_tile)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
+                self.displayPath(path,nodes_explored)
                 print("A* explored ",number_nodes_explored, "before finding the end")
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
@@ -124,6 +125,7 @@ class Maze:
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
                 print("Dijkstra explored ",number_nodes_explored, "before finding the end")
+                self.displayPath(path,nodes_explored)
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
@@ -144,29 +146,45 @@ class Maze:
         return path
 
     def displayBlankMaze(self):
-        step_x = self.MAZE_DISPLAY_W/self.W
-        step_y = self.MAZE_DISPLAY_H/self.H
-        for y in range(self.H):
-            for x in range(self.W):
-                if(self.is_walkeable(y,x)):
-                    pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
-                else:
-                    pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
-    
+        if(self.window):
+            step_x = self.MAZE_DISPLAY_W/self.W
+            step_y = self.MAZE_DISPLAY_H/self.H
+            for y in range(self.H):
+                for x in range(self.W):
+                    if(self.is_walkeable(y,x)):
+                        pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
+                    else:
+                        pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
+            pygame.display.flip()    
     def displayMaze(self,explored_nodes):
-        step_x = self.MAZE_DISPLAY_W/self.W
-        step_y = self.MAZE_DISPLAY_H/self.H
-        for y in range(self.H):
-            for x in range(self.W):
-                if(self.is_walkeable(y,x)):
-                    pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
-                else:
-                    pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
-        for node in explored_nodes:
-            pygame.draw.rect(self.window,(255,0,0),(node[1]*step_x,node[0]*step_y,step_x,step_y))
-        pygame.display.flip()
+        if(self.window):    
+            step_x = self.MAZE_DISPLAY_W/self.W
+            step_y = self.MAZE_DISPLAY_H/self.H
+            for y in range(self.H):
+                for x in range(self.W):
+                    if(self.is_walkeable(y,x)):
+                        pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
+                    else:
+                        pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
+            for node in explored_nodes:
+                pygame.draw.rect(self.window,(255,0,0),(node[1]*step_x,node[0]*step_y,step_x,step_y))
+            pygame.display.flip()
 
-            
+    def displayPath(self,path,explored_nodes=[]):
+        if(self.window):    
+            step_x = self.MAZE_DISPLAY_W/self.W
+            step_y = self.MAZE_DISPLAY_H/self.H
+            for y in range(self.H):
+                for x in range(self.W):
+                    if(self.is_walkeable(y,x)):
+                        pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
+                    else:
+                        pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
+            for node in explored_nodes:
+                pygame.draw.rect(self.window,(255,0,0),(node[1]*step_x,node[0]*step_y,step_x,step_y))
+            for node in path:
+                pygame.draw.rect(self.window,(0,255,0),(node[1]*step_x,node[0]*step_y,step_x,step_y))
+            pygame.display.flip()
 
             
 
