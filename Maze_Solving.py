@@ -23,7 +23,7 @@ class Maze:
         self.navigation_map = np.zeros((H,W))
         self.reward_map = np.zeros((H,W))
 
-        self.generateMaze(0.5)
+        self.generateMaze(0.8)
         self.generateReward()
 
     def is_in_bounds(self,y,x):
@@ -85,16 +85,18 @@ class Maze:
         g_scores = {start : 0}
         f_scores = {start : tools.manhattan_dist(end,start)}
         origins = {}
-        nodes_explored = 0
+        number_nodes_explored = 0
+        nodes_explored = []
         queue.append((f_scores[start],start))
         while(queue):
-            nodes_explored +=1
+            number_nodes_explored +=1
             current_entry = min(queue)
             current_tile = current_entry[1]
             queue.remove(current_entry)
+            nodes_explored.append(current_tile)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
-                print("A* explored ",nodes_explored, "before finding the end")
+                print("A* explored ",number_nodes_explored, "before finding the end")
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
@@ -104,22 +106,24 @@ class Maze:
                     f = temp_g + tools.manhattan_dist(end,neighbor)
                     f_scores[neighbor] = f
                     queue.append((f,neighbor))
-                    
+            self.displayMaze(nodes_explored)
         return None
     def Dijkstra(self,start,end):
         queue = []
         g_scores = {start : 0}
         origins = {}
-        nodes_explored = 0
+        number_nodes_explored = 0
+        nodes_explored = []
         queue.append((0,start))
         while(queue):
-            nodes_explored +=1
+            number_nodes_explored +=1
             current_entry = min(queue)
             current_tile = current_entry[1]
             queue.remove(current_entry)
+            nodes_explored.append(current_tile) 
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
-                print("Dijkstra explored ",nodes_explored, "before finding the end")
+                print("Dijkstra explored ",number_nodes_explored, "before finding the end")
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
@@ -127,7 +131,7 @@ class Maze:
                     origins[neighbor] = current_tile
                     g_scores[neighbor] = temp_g
                     queue.append((temp_g,neighbor))
-                    
+            self.displayMaze(nodes_explored)
 
     def returnPath(self, origins,start, end):
         path = [end]
@@ -138,7 +142,8 @@ class Maze:
             path.append(previous_tile)
         path.reverse()
         return path
-    def displayMaze(self):
+
+    def displayBlankMaze(self):
         step_x = self.MAZE_DISPLAY_W/self.W
         step_y = self.MAZE_DISPLAY_H/self.H
         for y in range(self.H):
@@ -147,7 +152,19 @@ class Maze:
                     pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
                 else:
                     pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
-            
+    
+    def displayMaze(self,explored_nodes):
+        step_x = self.MAZE_DISPLAY_W/self.W
+        step_y = self.MAZE_DISPLAY_H/self.H
+        for y in range(self.H):
+            for x in range(self.W):
+                if(self.is_walkeable(y,x)):
+                    pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
+                else:
+                    pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
+        for node in explored_nodes:
+            pygame.draw.rect(self.window,(255,0,0),(node[1]*step_x,node[0]*step_y,step_x,step_y))
+        pygame.display.flip()
 
             
 
