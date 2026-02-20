@@ -13,7 +13,7 @@ print(maze.navigation_map)
 
 
 print(maze.solve(maze.a_star))
-#print(maze.solve(maze.Dijkstra))
+print(maze.solve(maze.Dijkstra))
 
 while(running):
     for event in pygame.event.get():
