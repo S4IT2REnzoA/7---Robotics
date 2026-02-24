@@ -162,13 +162,12 @@ class Maze:
             step_y = self.MAZE_DISPLAY_H/self.H
             for y in range(self.H):
                 for x in range(self.W):
-                    if((y,x) in explored_nodes):
-                        pygame.draw.rect(self.window,(255,0,0),(x*step_x,y*step_y,step_x,step_y))
-                        pass
                     if(self.is_walkeable(y,x)):
                         pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
                     else:
                         pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
+                    if((y,x) in explored_nodes):
+                        pygame.draw.rect(self.window,(255,0,0),(x*step_x,y*step_y,step_x,step_y))
             pygame.display.flip()
 
     def displayPath(self,path):
