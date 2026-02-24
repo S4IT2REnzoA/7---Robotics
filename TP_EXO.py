@@ -8,12 +8,12 @@ pygame.init()
 window = pygame.display.set_mode((Maze.MAZE_DISPLAY_W, Maze.MAZE_DISPLAY_H))
 running = True
 
-maze = Maze(50,50,(0,0),(49,49),window=window)
+maze = Maze(50,50,(0,0),(49,49),window=window,diagonal=True)
 print(maze.navigation_map)
 
 
 print(maze.solve(maze.a_star))
-print(maze.solve(maze.Dijkstra))
+#print(maze.solve(maze.Dijkstra))
 
 while(running):
     for event in pygame.event.get():

@@ -23,7 +23,7 @@ class Maze:
         self.navigation_map = np.zeros((H,W))
         self.reward_map = np.zeros((H,W))
 
-        self.generateMaze(0.8)
+        self.generateMaze(0.6)
         self.generateReward()
 
     def is_in_bounds(self,y,x):
@@ -80,7 +80,7 @@ class Maze:
         self.reward_map[self.end_node] = -10
     
 
-    def a_star(self,start,end):
+    def a_star(self,start,end,diagonal=False):
         queue = []
         g_scores = {start : 0}
         f_scores = {start : tools.manhattan_dist(end,start)}
@@ -96,11 +96,16 @@ class Maze:
             nodes_explored.append(current_tile)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
+                self.displayMaze(nodes_explored)
                 self.displayPath(path)
                 print("A* explored ",number_nodes_explored, "before finding the end")
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
-                temp_g = g_scores[current_tile] + self.reward_map[neighbor]
+                temp_g = 0
+                if(not diagonal):
+                    temp_g = g_scores[current_tile] + self.reward_map[neighbor]
+                else:
+                    temp_g = g_scores[current_tile] + tools.manhattan_dist(current_tile,neighbor)
                 if neighbor not in g_scores.keys() or temp_g < g_scores[neighbor]:
                     origins[neighbor] = current_tile
                     g_scores[neighbor] = temp_g
@@ -109,7 +114,7 @@ class Maze:
                     queue.append((f,neighbor))
             self.displayMaze(nodes_explored)
         return None
-    def Dijkstra(self,start,end):
+    def Dijkstra(self,start,end,diagonal=False):
         queue = []
         g_scores = {start : 0}
         origins = {}
@@ -162,13 +167,12 @@ class Maze:
             step_y = self.MAZE_DISPLAY_H/self.H
             for y in range(self.H):
                 for x in range(self.W):
-                    if((y,x) in explored_nodes):
-                        pygame.draw.rect(self.window,(255,0,0),(x*step_x,y*step_y,step_x,step_y))
-                        pass
                     if(self.is_walkeable(y,x)):
                         pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
                     else:
                         pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
+                    if((y,x) in explored_nodes):
+                        pygame.draw.rect(self.window,(255,0,0),(x*step_x,y*step_y,step_x,step_y))
             pygame.display.flip()
 
     def displayPath(self,path):
