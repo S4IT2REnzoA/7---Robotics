@@ -50,7 +50,6 @@ class Maze:
     
     def _get_neighbors_diag(self,y,x):
         neighbors = []
-        print("Neighbors of (",y,",",x,")" )
         for i in (-1,0,1):
             for j in (-1,0,1):
                 if(self.is_in_bounds(y+i,x+j)):
@@ -76,8 +75,8 @@ class Maze:
         for y in range(self.H):
             for x in range(self.W):
                 if(self.is_walkeable(y,x)):
-                    self.reward_map[y][x] = 1
-        self.reward_map[self.end_node] = -10
+                    self.reward_map[y][x] = -1
+        self.reward_map[self.end_node] = 10
     
 
     def a_star(self,start,end,diagonal=False):
