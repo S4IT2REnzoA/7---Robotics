@@ -2,6 +2,7 @@ import numpy as np
 import random as rand
 import tools
 import pygame
+import heapq
 
 
 
@@ -81,18 +82,17 @@ class Maze:
     
 
     def a_star(self,start,end):
-        queue = []
+        heap = []
         g_scores = {start : 0}
         f_scores = {start : tools.manhattan_dist(end,start)}
         origins = {}
         number_nodes_explored = 0
         nodes_explored = []
-        queue.append((f_scores[start],start))
-        while(queue):
+        heapq.heappush(heap, (f_scores[start], start))
+        while(heap):
             number_nodes_explored +=1
-            current_entry = min(queue)
+            current_entry = heapq.heappop(heap)
             current_tile = current_entry[1]
-            queue.remove(current_entry)
             nodes_explored.append(current_tile)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
@@ -106,22 +106,21 @@ class Maze:
                     g_scores[neighbor] = temp_g
                     f = temp_g + tools.manhattan_dist(end,neighbor)
                     f_scores[neighbor] = f
-                    queue.append((f,neighbor))
+                    heapq.heappush(heap, (f, neighbor))
             self.displayMaze(nodes_explored)
         return None
     def Dijkstra(self,start,end):
-        queue = []
+        heap = []
         g_scores = {start : 0}
         origins = {}
         number_nodes_explored = 0
         nodes_explored = []
-        queue.append((0,start))
-        while(queue):
+        heapq.heappush(heap, (0,start))
+        while(heap):
             number_nodes_explored +=1
-            current_entry = min(queue)
+            current_entry = heapq.heappop(heap)
             current_tile = current_entry[1]
-            queue.remove(current_entry)
-            nodes_explored.append(current_tile) 
+            nodes_explored.append(current_tile)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
                 print("Dijkstra explored ",number_nodes_explored, "before finding the end")
@@ -132,7 +131,7 @@ class Maze:
                 if neighbor not in g_scores.keys() or temp_g < g_scores[neighbor]:
                     origins[neighbor] = current_tile
                     g_scores[neighbor] = temp_g
-                    queue.append((temp_g,neighbor))
+                    heapq.heappush(heap, (temp_g,neighbor))
             self.displayMaze(nodes_explored)
 
     def returnPath(self, origins,start, end):
@@ -157,18 +156,18 @@ class Maze:
                         pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
             pygame.display.flip()    
     def displayMaze(self,explored_nodes):
-        if(self.window):    
+        if(self.window):
             step_x = self.MAZE_DISPLAY_W/self.W
             step_y = self.MAZE_DISPLAY_H/self.H
+            explored_set = set(explored_nodes)
             for y in range(self.H):
                 for x in range(self.W):
-                    if((y,x) in explored_nodes):
-                        pygame.draw.rect(self.window,(255,0,0),(x*step_x,y*step_y,step_x,step_y))
-                        pass
-                    if(self.is_walkeable(y,x)):
-                        pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
-                    else:
+                    if not self.is_walkeable(y,x):
                         pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
+                    elif (y,x) in explored_set:
+                        pygame.draw.rect(self.window,(255,0,0),(x*step_x,y*step_y,step_x,step_y))
+                    else:
+                        pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
             pygame.display.flip()
 
     def displayPath(self,path):
