@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+*.lib
+*.a
+build/
+dist/
