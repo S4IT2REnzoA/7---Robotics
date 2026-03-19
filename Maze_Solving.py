@@ -15,6 +15,7 @@ class Maze:
         self.W = W
         self.diagonal = diagonal
         self.window = window
+        self.last_explored = set()
         if(len(start_node)!=2):
             return False
         if(len(end_node)!=2):
@@ -51,7 +52,6 @@ class Maze:
     
     def _get_neighbors_diag(self,y,x):
         neighbors = []
-        print("Neighbors of (",y,",",x,")" )
         for i in (-1,0,1):
             for j in (-1,0,1):
                 if(self.is_in_bounds(y+i,x+j)):
@@ -82,6 +82,7 @@ class Maze:
     
 
     def a_star(self,start,end):
+        self.displayBlankMaze()
         heap = []
         g_scores = {start : 0}
         f_scores = {start : tools.manhattan_dist(end,start)}
@@ -98,6 +99,7 @@ class Maze:
                 path = self.returnPath(origins,start,end)
                 self.displayPath(path)
                 print("A* explored ",number_nodes_explored, "before finding the end")
+                self.waitForKey()
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
@@ -108,8 +110,10 @@ class Maze:
                     f_scores[neighbor] = f
                     heapq.heappush(heap, (f, neighbor))
             self.displayMaze(nodes_explored)
+        self.waitForKey()
         return None
     def Dijkstra(self,start,end):
+        self.displayBlankMaze()
         heap = []
         g_scores = {start : 0}
         origins = {}
@@ -125,6 +129,7 @@ class Maze:
                 path = self.returnPath(origins,start,end)
                 print("Dijkstra explored ",number_nodes_explored, "before finding the end")
                 self.displayPath(path)
+                self.waitForKey()
                 return path
             for neighbor in self.get_neighbors(current_tile[0],current_tile[1]):
                 temp_g = g_scores[current_tile] + self.reward_map[neighbor]
@@ -133,6 +138,8 @@ class Maze:
                     g_scores[neighbor] = temp_g
                     heapq.heappush(heap, (temp_g,neighbor))
             self.displayMaze(nodes_explored)
+        self.waitForKey()
+        return
 
     def returnPath(self, origins,start, end):
         path = [end]
@@ -154,38 +161,39 @@ class Maze:
                         pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
                     else:
                         pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
-            pygame.display.flip()    
+            pygame.display.flip()
+            self.last_explored = set()
+
     def displayMaze(self,explored_nodes):
         if(self.window):
             step_x = self.MAZE_DISPLAY_W/self.W
             step_y = self.MAZE_DISPLAY_H/self.H
             explored_set = set(explored_nodes)
-            for y in range(self.H):
-                for x in range(self.W):
-<<<<<<< HEAD
-                    if not self.is_walkeable(y,x):
-                        pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
-                    elif (y,x) in explored_set:
-                        pygame.draw.rect(self.window,(255,0,0),(x*step_x,y*step_y,step_x,step_y))
-                    else:
-                        pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
-=======
-                    if(self.is_walkeable(y,x)):
-                        pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
-                    else:
-                        pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
-                    if((y,x) in explored_nodes):
-                        pygame.draw.rect(self.window,(255,0,0),(x*step_x,y*step_y,step_x,step_y))
->>>>>>> cbc2cc81a924359ea534eab28bee264b4587755f
+            newly_explored = explored_set - self.last_explored
+
+            for y, x in newly_explored:
+                pygame.draw.rect(self.window,(255,0,0),(x*step_x,y*step_y,step_x,step_y))
+
+            self.last_explored = explored_set
             pygame.display.flip()
 
     def displayPath(self,path):
-        if(self.window):    
+        if(self.window):
             step_x = self.MAZE_DISPLAY_W/self.W
             step_y = self.MAZE_DISPLAY_H/self.H
             for node in path:
                 pygame.draw.rect(self.window,(0,255,0),(node[1]*step_x,node[0]*step_y,step_x,step_y))
             pygame.display.flip()
+
+    def waitForKey(self):
+        if(self.window):
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        waiting = False
+                    if event.type == pygame.QUIT:
+                        waiting = False
 
             
 
