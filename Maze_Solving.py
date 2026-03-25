@@ -3,6 +3,7 @@ import random as rand
 import tools
 import pygame
 import heapq
+import sys
 
 
 
@@ -150,11 +151,19 @@ class Maze:
         self.waitForKey()
         return
 
-    def returnPath(self, origins,start, end):
+    def returnPath(self, origins, start, end):
+        if end == start:
+            return [start]
+        if end not in origins:
+            print(f"returnPath: Warning - end {end} not reachable from start {start}")
+            return [start, end]  # Direct connection as fallback
         path = [end]
         previous_tile = origins[end]
         path.append(previous_tile)
-        while(previous_tile!=start):
+        while(previous_tile != start):
+            if previous_tile not in origins:
+                print(f"returnPath: Warning - broken path at {previous_tile}")
+                break
             previous_tile = origins[previous_tile]
             path.append(previous_tile)
         path.reverse()
@@ -200,29 +209,36 @@ class Maze:
         self._flush()
         self._pending_flush = 0
 
-    def waitForKey(self):
+    def waitForKey(self, close_on_key=False):
+        """Wait for user input. If close_on_key=True, return True when user presses a key."""
         print("waitForKey: Waiting for user input...")
-        if(self.window):
-            waiting = True
-            while waiting:
-                for event in pygame.event.get():
-                    if event.type == pygame.KEYDOWN:
-                        print("waitForKey: Key pressed!")
-                        waiting = False
-                    if event.type == pygame.QUIT:
-                        print("waitForKey: Window closed!")
-                        waiting = False
+        if not self.window:
+            return False
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    print("waitForKey: Key pressed!")
+                    waiting = False
+                    if close_on_key:
+                        return True
+                if event.type == pygame.QUIT:
+                    print("waitForKey: Window closed!")
+                    waiting = False
+                    return True
         print("waitForKey: Finished")
+        return False
 
     def Dijkstra_Bi_Simple(self,start,end):
         print("Starting Bidirectional Dijkstra")
         self.displayBlankMaze()
 
-        # Step 0: Calculate midway distance
-        midway_distance = tools.manhattan_dist(start, end) / 2
-        print(f"Step 0: Midway distance = {midway_distance}")
+        # Step 0: Calculate exploration target (explore ~25% of maze from each end)
+        total_cells = self.H * self.W
+        target_explore_count = max(100, total_cells // 4)
+        print(f"Step 0: Will explore ~{target_explore_count} nodes from each end")
 
-        # Step 1: Dijkstra from start until midway distance
+        # Step 1: Dijkstra from start until target node count
         print("Step 1: Starting Dijkstra from start")
         heap1 = []
         g_scores1 = {start : 0}
@@ -233,11 +249,8 @@ class Maze:
         heapq.heappush(heap1, (0, start))
 
         iteration_count = 0
-        max_iterations = 10000
-        while heap1 and iteration_count < max_iterations:
+        while heap1 and len(nodes_explored1) < target_explore_count:
             iteration_count += 1
-            if iteration_count % 1000 == 0:
-                print(f"Step 1: Iteration {iteration_count}, heap size: {len(heap1)}, visited: {len(visited1)}")
 
             current_entry = heapq.heappop(heap1)
             current_tile = current_entry[1]
@@ -247,12 +260,7 @@ class Maze:
 
             visited1.add(current_tile)
             nodes_explored1.append(current_tile)
-
-            # Check if we've reached midway distance
-            if g_scores1[current_tile] >= midway_distance:
-                periphery_start = current_tile
-                print(f"Step 1: Reached midway distance at {periphery_start} after {iteration_count} iterations")
-                break
+            periphery_start = current_tile
 
             for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
                 if neighbor not in visited1:
@@ -262,14 +270,13 @@ class Maze:
                         g_scores1[neighbor] = temp_g
                         heapq.heappush(heap1, (temp_g, neighbor))
 
-        if iteration_count >= max_iterations:
-            print(f"Step 1: REACHED MAX ITERATIONS ({max_iterations})")
         print(f"Step 1: Explored {len(nodes_explored1)} nodes, periphery_start = {periphery_start}")
         self.displayExplored(nodes_explored1, color1=(255, 0, 0))
         self.waitForKey()
         print("Step 1: Waiting for key completed")
+        print("Step 1: Waiting for key completed")
 
-        # Step 2: Dijkstra from end until midway distance
+        # Step 2: Dijkstra from end until target node count
         print("Step 2: Starting Dijkstra from end")
         heap2 = []
         g_scores2 = {end : 0}
@@ -280,32 +287,20 @@ class Maze:
         heapq.heappush(heap2, (0, end))
 
         iteration_count = 0
-        max_iterations = 10000
-        while heap2 and iteration_count < max_iterations:
+        while heap2 and len(nodes_explored2) < target_explore_count:
             iteration_count += 1
-            if iteration_count % 1000 == 0:
-                print(f"Step 2: Iteration {iteration_count}, heap size: {len(heap2)}, visited: {len(visited2)}")
 
             current_entry = heapq.heappop(heap2)
             current_tile = current_entry[1]
 
             if current_tile in visited2:
-                print(f"Step 2: Skipping already visited node {current_tile}")
                 continue
 
             visited2.add(current_tile)
             nodes_explored2.append(current_tile)
+            periphery_end = current_tile
 
-            # Check if we've reached midway distance
-            if g_scores2[current_tile] >= midway_distance:
-                periphery_end = current_tile
-                print(f"Step 2: Reached midway distance at {periphery_end} after {iteration_count} iterations")
-                break
-
-            neighbors = self.get_neighbors(current_tile[0], current_tile[1])
-            print(f"Step 2: Node {current_tile} has {len(neighbors)} neighbors")
-
-            for neighbor in neighbors:
+            for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
                 if neighbor not in visited2:
                     temp_g = g_scores2[current_tile] + self.reward_map[neighbor]
                     if neighbor not in g_scores2.keys() or temp_g < g_scores2[neighbor]:
@@ -313,28 +308,26 @@ class Maze:
                         g_scores2[neighbor] = temp_g
                         heapq.heappush(heap2, (temp_g, neighbor))
 
-        if iteration_count >= max_iterations:
-            print(f"Step 2: REACHED MAX ITERATIONS ({max_iterations})")
         print(f"Step 2: Explored {len(nodes_explored2)} nodes, periphery_end = {periphery_end}")
         self.displayExplored(nodes_explored1, nodes_explored2, color1=(255, 0, 0), color2=(128, 0, 128), color3=(165, 42, 42))
         self.waitForKey()
         print("Step 2: Waiting for key completed")
 
-        # Step 3: Dijkstra from periphery_start to periphery_end
-        print(f"Step 3: Starting Dijkstra from {periphery_start} to {periphery_end}")
+        # Step 3: Dijkstra from periphery_start to find closest node from explored2 region
+        print(f"Step 3: Starting Dijkstra from {periphery_start}, searching for nodes in region 2")
+        explored2_set = set(nodes_explored2)
         heap3 = []
         g_scores3 = {periphery_start : 0}
         origins3 = {}
         nodes_explored3 = []
         visited3 = set()
+        connection_node = None
         heapq.heappush(heap3, (0, periphery_start))
 
         iteration_count = 0
-        max_iterations = 10000
-        while heap3 and iteration_count < max_iterations:
+        max_iterations = 50000  # May need more iterations to reach region 2
+        while heap3 and iteration_count < max_iterations and connection_node is None:
             iteration_count += 1
-            if iteration_count % 1000 == 0:
-                print(f"Step 3: Iteration {iteration_count}, heap size: {len(heap3)}, visited: {len(visited3)}")
 
             current_entry = heapq.heappop(heap3)
             current_tile = current_entry[1]
@@ -345,8 +338,10 @@ class Maze:
             visited3.add(current_tile)
             nodes_explored3.append(current_tile)
 
-            if current_tile == periphery_end:
-                print(f"Step 3: Reached periphery_end after {iteration_count} iterations")
+            # Check if we reached a node from region 2
+            if current_tile in explored2_set:
+                connection_node = current_tile
+                print(f"Step 3: Found connection to region 2 at {connection_node} after {iteration_count} iterations")
                 break
 
             for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
@@ -359,7 +354,10 @@ class Maze:
 
         if iteration_count >= max_iterations:
             print(f"Step 3: REACHED MAX ITERATIONS ({max_iterations})")
-        print(f"Step 3: Explored {len(nodes_explored3)} nodes")
+        if connection_node is None:
+            connection_node = nodes_explored3[-1] if nodes_explored3 else periphery_start
+            print(f"Step 3: Could not reach region 2, using closest node {connection_node}")
+        print(f"Step 3: Explored {len(nodes_explored3)} nodes, connection at {connection_node}")
         self.displayExplored(nodes_explored1, nodes_explored2, nodes_explored3, color1=(255, 0, 0), color2=(128, 0, 128), color3=(0, 255, 255))
         self.waitForKey()
         print("Step 3: Waiting for key completed")
@@ -368,23 +366,26 @@ class Maze:
         print("Reconstructing paths...")
         path1 = self.returnPath(origins1, start, periphery_start)
         print(f"Path 1 length: {len(path1)}")
-        path2 = self.returnPath(origins2, end, periphery_end)
+        path2 = self.returnPath(origins2, end, connection_node)
         print(f"Path 2 length: {len(path2)}")
-        path3 = self.returnPath(origins3, periphery_start, periphery_end)
+        path3 = self.returnPath(origins3, periphery_start, connection_node)
         print(f"Path 3 length: {len(path3)}")
 
-        # Reverse path2 since it goes from end to periphery_end
+        # Reverse path2 since it goes from end to connection_node
         print("Reversing path 2...")
         path2.reverse()
 
-        # Combine paths
+        # Combine paths: path1 ends at periphery_start, path3 connects to connection_node, path2 ends at end
         print("Combining paths...")
-        full_path = path1[:-1] + path3 + path2[1:]
+        full_path = path1 + path3[1:] + path2[1:]
         print(f"Full path length: {len(full_path)}")
 
         print("Displaying complete path...")
         self.displayCompletePath(full_path, (0, 255, 0), (0, 255, 255), (0, 0, 255))
-        self.waitForKey()
+
+        should_close = self.waitForKey(close_on_key=True)
+        if should_close:
+            sys.exit()
 
         print("Bidirectional Dijkstra completed")
         return full_path
