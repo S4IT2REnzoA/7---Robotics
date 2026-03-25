@@ -8,7 +8,8 @@ pygame.init()
 window = pygame.display.set_mode((Maze.MAZE_DISPLAY_W, Maze.MAZE_DISPLAY_H))
 running = True
 
-maze = Maze(50,50,(0,0),(49,49),window=window)
+H, W = 500, 500
+maze = Maze(H, W, (0, 0), (H-1, W-1), window=window)
 print(maze.navigation_map)
 
 

@@ -7,8 +7,12 @@ import heapq
 
 
 class Maze:
-    MAZE_DISPLAY_H = 400
-    MAZE_DISPLAY_W = 400
+    MAZE_DISPLAY_H = 800
+    MAZE_DISPLAY_W = 800
+    DISPLAY_THROTTLE = 500
+    COLOR_WALL = (0, 0, 0)
+    COLOR_WALKABLE = (255, 255, 255)
+    COLOR_EXPLORED = (255, 0, 0)
     
     def __init__(self,H,W,start_node,end_node,diagonal = 0,window = 0):
         self.H = H
@@ -27,6 +31,11 @@ class Maze:
 
         self.generateMaze(0.8)
         self.generateReward()
+
+        self.pixel_array = np.zeros((self.H, self.W, 3), dtype=np.uint8)
+        if self.window:
+            self._cell_surface = pygame.Surface((self.W, self.H))
+            self._pending_flush = 0
 
     def is_in_bounds(self,y,x):
         if(x>=self.W or x<0):
@@ -151,39 +160,45 @@ class Maze:
         path.reverse()
         return path
 
+    def _flush(self):
+        if not self.window:
+            return
+        pygame.surfarray.blit_array(self._cell_surface,
+                                    self.pixel_array.transpose(1, 0, 2))
+        scaled = pygame.transform.scale(self._cell_surface,
+                                        (self.MAZE_DISPLAY_W, self.MAZE_DISPLAY_H))
+        self.window.blit(scaled, (0, 0))
+        pygame.display.flip()
+
     def displayBlankMaze(self):
-        if(self.window):
-            step_x = self.MAZE_DISPLAY_W/self.W
-            step_y = self.MAZE_DISPLAY_H/self.H
-            for y in range(self.H):
-                for x in range(self.W):
-                    if(self.is_walkeable(y,x)):
-                        pygame.draw.rect(self.window,(255,255,255),(x*step_x,y*step_y,step_x,step_y))
-                    else:
-                        pygame.draw.rect(self.window,(0,0,0),(x*step_x,y*step_y,step_x,step_y))
-            pygame.display.flip()
-            self.last_explored = set()
+        if not self.window:
+            return
+        self.pixel_array[self.navigation_map == 0] = self.COLOR_WALKABLE
+        self.pixel_array[self.navigation_map != 0] = self.COLOR_WALL
+        self._flush()
+        self.last_explored = set()
 
     def displayMaze(self,explored_nodes):
-        if(self.window):
-            step_x = self.MAZE_DISPLAY_W/self.W
-            step_y = self.MAZE_DISPLAY_H/self.H
-            explored_set = set(explored_nodes)
-            newly_explored = explored_set - self.last_explored
-
-            for y, x in newly_explored:
-                pygame.draw.rect(self.window,(255,0,0),(x*step_x,y*step_y,step_x,step_y))
-
-            self.last_explored = explored_set
-            pygame.display.flip()
+        if not self.window:
+            return
+        explored_set = set(explored_nodes)
+        newly_explored = explored_set - self.last_explored
+        if newly_explored:
+            ys, xs = zip(*newly_explored)
+            self.pixel_array[list(ys), list(xs)] = self.COLOR_EXPLORED
+        self.last_explored = explored_set
+        self._pending_flush += len(newly_explored)
+        if self._pending_flush >= self.DISPLAY_THROTTLE:
+            self._flush()
+            self._pending_flush = 0
 
     def displayPath(self,path):
-        if(self.window):
-            step_x = self.MAZE_DISPLAY_W/self.W
-            step_y = self.MAZE_DISPLAY_H/self.H
-            for node in path:
-                pygame.draw.rect(self.window,(0,255,0),(node[1]*step_x,node[0]*step_y,step_x,step_y))
-            pygame.display.flip()
+        if not self.window:
+            return
+        for node in path:
+            self.pixel_array[node[0], node[1]] = (0, 255, 0)
+        self._flush()
+        self._pending_flush = 0
 
     def waitForKey(self):
         print("waitForKey: Waiting for user input...")
@@ -376,58 +391,35 @@ class Maze:
 
     def displayExplored(self, explored1, explored2=None, explored3=None, color1=(255, 0, 0), color2=(128, 0, 128), color3=(165, 42, 42)):
         """Display explored nodes with different colors for each step"""
-        print(f"displayExplored called with explored1 len={len(explored1) if explored1 else 0}, explored2={len(explored2) if explored2 else 0}, explored3={len(explored3) if explored3 else 0}")
         if not self.window:
             return
-
-        step_x = self.MAZE_DISPLAY_W / self.W
-        step_y = self.MAZE_DISPLAY_H / self.H
 
         explored1_set = set(explored1)
         explored2_set = set(explored2) if explored2 else set()
         explored3_set = set(explored3) if explored3 else set()
-        print(f"Starting to draw explored nodes...")
 
         # Draw nodes explored in both (overlap)
         overlap = explored1_set & explored2_set
-        print(f"Drawing {len(overlap)} overlapping nodes in color3")
-        for y, x in overlap:
-            pygame.draw.rect(self.window, color3, (x*step_x, y*step_y, step_x, step_y))
-
-        # Draw nodes explored only in step 1
         only_1 = explored1_set - overlap
-        print(f"Drawing {len(only_1)} nodes only in step 1 in color1")
-        for y, x in only_1:
-            pygame.draw.rect(self.window, color1, (x*step_x, y*step_y, step_x, step_y))
-
-        # Draw nodes explored only in step 2
         only_2 = explored2_set - overlap
-        print(f"Drawing {len(only_2)} nodes only in step 2 in color2")
-        for y, x in only_2:
-            pygame.draw.rect(self.window, color2, (x*step_x, y*step_y, step_x, step_y))
-
-        # Draw nodes only in step 3
         only_3 = explored3_set - explored1_set - explored2_set
-        print(f"Drawing {len(only_3)} nodes only in step 3 in cyan")
-        for y, x in only_3:
-            pygame.draw.rect(self.window, (0, 255, 255), (x*step_x, y*step_y, step_x, step_y))
 
-        print("Calling pygame.display.flip()...")
-        pygame.display.flip()
-        print("displayExplored finished")
+        for group, color in [(overlap, color3), (only_1, color1), (only_2, color2), (only_3, (0, 255, 255))]:
+            if group:
+                ys, xs = zip(*group)
+                self.pixel_array[list(ys), list(xs)] = color
+
+        self._flush()
+        self._pending_flush = 0
 
     def displayCompletePath(self, path, color1=(0, 255, 0), color2=(0, 255, 255), color3=(0, 0, 255)):
         """Display the final complete path"""
         if not self.window:
             return
-
-        step_x = self.MAZE_DISPLAY_W / self.W
-        step_y = self.MAZE_DISPLAY_H / self.H
-
         for node in path:
-            pygame.draw.rect(self.window, (0, 255, 0), (node[1]*step_x, node[0]*step_y, step_x, step_y))
-
-        pygame.display.flip()
+            self.pixel_array[node[0], node[1]] = (0, 255, 0)
+        self._flush()
+        self._pending_flush = 0
 
 
 
