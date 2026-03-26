@@ -4,6 +4,7 @@ import tools
 import pygame
 import heapq
 import sys
+import time
 
 
 
@@ -210,18 +211,19 @@ class Maze:
         self._pending_flush = 0
 
     def waitForKey(self, close_on_key=False):
-        """Wait for user input. If close_on_key=True, return True when user presses a key."""
-        print("waitForKey: Waiting for user input...")
+        """Wait for spacebar press. If close_on_key=True, return True when spacebar is pressed."""
+        print("waitForKey: Press SPACEBAR to continue...")
         if not self.window:
             return False
         waiting = True
         while waiting:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
-                    print("waitForKey: Key pressed!")
-                    waiting = False
-                    if close_on_key:
-                        return True
+                    if event.key == pygame.K_SPACE:
+                        print("waitForKey: Spacebar pressed!")
+                        waiting = False
+                        if close_on_key:
+                            return True
                 if event.type == pygame.QUIT:
                     print("waitForKey: Window closed!")
                     waiting = False
@@ -326,7 +328,7 @@ class Maze:
 
         iteration_count = 0
         max_iterations = 50000  # May need more iterations to reach region 2
-        while heap3 and iteration_count < max_iterations and connection_node is None:
+        while heap3 and connection_node is None:
             iteration_count += 1
 
             current_entry = heapq.heappop(heap3)
@@ -359,6 +361,9 @@ class Maze:
             print(f"Step 3: Could not reach region 2, using closest node {connection_node}")
         print(f"Step 3: Explored {len(nodes_explored3)} nodes, connection at {connection_node}")
         self.displayExplored(nodes_explored1, nodes_explored2, nodes_explored3, color1=(255, 0, 0), color2=(128, 0, 128), color3=(0, 255, 255))
+        # Force final flush to ensure all pixels are drawn
+        self._flush()
+        self._pending_flush = 0
         self.waitForKey()
         print("Step 3: Waiting for key completed")
 
@@ -375,9 +380,10 @@ class Maze:
         print("Reversing path 2...")
         path2.reverse()
 
-        # Combine paths: path1 ends at periphery_start, path3 connects to connection_node, path2 ends at end
+        # Combine paths: path1 ends at periphery_start, path3 connects to connection_node, path2 starts at connection_node and ends at end
         print("Combining paths...")
-        full_path = path1 + path3[1:] + path2[1:]
+        # path1[:-1] to skip duplicate periphery_start, path3[:-1] to skip duplicate connection_node, path2 as is (starts at connection_node after reverse)
+        full_path = path1[:-1] + path3 + path2
         print(f"Full path length: {len(full_path)}")
 
         print("Displaying complete path...")
@@ -422,11 +428,7 @@ class Maze:
         self._flush()
         self._pending_flush = 0
 
-
-
-
-
     def solve(self, method):
 
         return method(self.start_node,self.end_node)
-           
+
