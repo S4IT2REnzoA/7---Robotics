@@ -108,6 +108,7 @@ class Maze:
             nodes_explored.append(current_tile)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
+                self._last_nodes_explored = number_nodes_explored
                 self.displayPath(path)
                 print("A* explored ",number_nodes_explored, "before finding the end")
                 self.waitForKey()
@@ -139,6 +140,7 @@ class Maze:
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
                 print("Dijkstra explored ",number_nodes_explored, "before finding the end")
+                self._last_nodes_explored = number_nodes_explored
                 self.displayPath(path)
                 self.waitForKey()
                 return path
@@ -389,6 +391,7 @@ class Maze:
         print("Displaying complete path...")
         self.displayCompletePath(full_path, (0, 255, 0), (0, 255, 255), (0, 0, 255))
 
+        self._last_nodes_explored = len(nodes_explored1) + len(nodes_explored2) + len(nodes_explored3)
         should_close = self.waitForKey(close_on_key=True)
         if should_close:
             sys.exit()
@@ -427,6 +430,159 @@ class Maze:
             self.pixel_array[node[0], node[1]] = (0, 255, 0)
         self._flush()
         self._pending_flush = 0
+
+    def a_star_Bi_Simple(self, start, end):
+        """Bidirectional A* with Manhattan heuristic - 3-step approach"""
+        print("Starting Bidirectional A*")
+        self.displayBlankMaze()
+
+        # Step 0: Calculate exploration target
+        total_cells = self.H * self.W
+        target_explore_count = max(100, total_cells // 4)
+        print(f"Step 0: Will explore ~{target_explore_count} nodes from each end")
+
+        # Step 1: A* from start until target node count
+        print("Step 1: Starting A* from start")
+        heap1 = []
+        g_scores1 = {start: 0}
+        origins1 = {}
+        nodes_explored1 = []
+        visited1 = set()
+        periphery_start = None
+        h_start = tools.manhattan_dist(end, start)
+        heapq.heappush(heap1, (h_start, start))
+
+        while heap1 and len(nodes_explored1) < target_explore_count:
+            _, current_tile = heapq.heappop(heap1)
+
+            if current_tile in visited1:
+                continue
+
+            visited1.add(current_tile)
+            nodes_explored1.append(current_tile)
+            periphery_start = current_tile
+
+            for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
+                if neighbor not in visited1:
+                    temp_g = g_scores1[current_tile] + self.reward_map[neighbor]
+                    if neighbor not in g_scores1 or temp_g < g_scores1[neighbor]:
+                        origins1[neighbor] = current_tile
+                        g_scores1[neighbor] = temp_g
+                        f = temp_g + tools.manhattan_dist(end, neighbor)
+                        heapq.heappush(heap1, (f, neighbor))
+
+        print(f"Step 1: Explored {len(nodes_explored1)} nodes, periphery_start = {periphery_start}")
+        self.displayExplored(nodes_explored1, color1=(255, 0, 0))
+        self.waitForKey()
+
+        # Step 2: A* from end until target node count
+        print("Step 2: Starting A* from end")
+        heap2 = []
+        g_scores2 = {end: 0}
+        origins2 = {}
+        nodes_explored2 = []
+        visited2 = set()
+        periphery_end = None
+        h_end = tools.manhattan_dist(start, end)
+        heapq.heappush(heap2, (h_end, end))
+
+        while heap2 and len(nodes_explored2) < target_explore_count:
+            _, current_tile = heapq.heappop(heap2)
+
+            if current_tile in visited2:
+                continue
+
+            visited2.add(current_tile)
+            nodes_explored2.append(current_tile)
+            periphery_end = current_tile
+
+            for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
+                if neighbor not in visited2:
+                    temp_g = g_scores2[current_tile] + self.reward_map[neighbor]
+                    if neighbor not in g_scores2 or temp_g < g_scores2[neighbor]:
+                        origins2[neighbor] = current_tile
+                        g_scores2[neighbor] = temp_g
+                        f = temp_g + tools.manhattan_dist(start, neighbor)
+                        heapq.heappush(heap2, (f, neighbor))
+
+        print(f"Step 2: Explored {len(nodes_explored2)} nodes, periphery_end = {periphery_end}")
+        self.displayExplored(nodes_explored1, nodes_explored2, color1=(255, 0, 0), color2=(128, 0, 128), color3=(165, 42, 42))
+        self.waitForKey()
+
+        # Step 3: A* from periphery_start to find closest node from explored2 region
+        print(f"Step 3: Starting A* from {periphery_start}, searching for nodes in region 2")
+        explored2_set = set(nodes_explored2)
+        heap3 = []
+        g_scores3 = {periphery_start: 0}
+        origins3 = {}
+        nodes_explored3 = []
+        visited3 = set()
+        connection_node = None
+        h3 = tools.manhattan_dist(end, periphery_start)
+        heapq.heappush(heap3, (h3, periphery_start))
+
+        while heap3 and connection_node is None:
+            _, current_tile = heapq.heappop(heap3)
+
+            if current_tile in visited3:
+                continue
+
+            visited3.add(current_tile)
+            nodes_explored3.append(current_tile)
+
+            # Check if we reached a node from region 2
+            if current_tile in explored2_set:
+                connection_node = current_tile
+                print(f"Step 3: Found connection to region 2 at {connection_node}")
+                break
+
+            for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
+                if neighbor not in visited3:
+                    temp_g = g_scores3[current_tile] + self.reward_map[neighbor]
+                    if neighbor not in g_scores3 or temp_g < g_scores3[neighbor]:
+                        origins3[neighbor] = current_tile
+                        g_scores3[neighbor] = temp_g
+                        f = temp_g + tools.manhattan_dist(end, neighbor)
+                        heapq.heappush(heap3, (f, neighbor))
+
+        if connection_node is None:
+            connection_node = nodes_explored3[-1] if nodes_explored3 else periphery_start
+            print(f"Step 3: Could not reach region 2, using closest node {connection_node}")
+
+        print(f"Step 3: Explored {len(nodes_explored3)} nodes, connection at {connection_node}")
+        self.displayExplored(nodes_explored1, nodes_explored2, nodes_explored3, color1=(255, 0, 0), color2=(128, 0, 128), color3=(0, 255, 255))
+        self._flush()
+        self._pending_flush = 0
+        self.waitForKey()
+
+        # Reconstruct paths
+        print("Reconstructing paths...")
+        path1 = self.returnPath(origins1, start, periphery_start)
+        print(f"Path 1 length: {len(path1)}")
+        path2 = self.returnPath(origins2, end, connection_node)
+        print(f"Path 2 length: {len(path2)}")
+        path3 = self.returnPath(origins3, periphery_start, connection_node)
+        print(f"Path 3 length: {len(path3)}")
+
+        # Reverse path2 since it goes from end to connection_node
+        print("Reversing path 2...")
+        path2.reverse()
+
+        # Combine paths
+        print("Combining paths...")
+        full_path = path1[:-1] + path3 + path2
+        print(f"Full path length: {len(full_path)}")
+
+        print("Displaying complete path...")
+        self.displayCompletePath(full_path, (0, 255, 0), (0, 255, 255), (0, 0, 255))
+
+        self._last_nodes_explored = len(nodes_explored1) + len(nodes_explored2) + len(nodes_explored3)
+        should_close = self.waitForKey(close_on_key=True)
+        if should_close:
+            sys.exit()
+
+        print("Bidirectional A* completed")
+        return full_path
 
     def solve(self, method):
 
