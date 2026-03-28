@@ -20,27 +20,21 @@ from matplotlib.colors import ListedColormap
 # Wrappers pour les algorithmes
 # ============================================================
 
-pygame.init()
+def run_dijkstra(maze, start, end):
+    """Lance Dijkstra classique et retourne (path, temps_ms, nodes_explored)."""
+    t0 = time.perf_counter()
+    path = maze.Dijkstra(start, end)
+    t_ms = (time.perf_counter() - t0) * 1000
+    nodes_explored = getattr(maze, '_last_nodes_explored', 0)
+    return path or [], t_ms, nodes_explored
 
-window = pygame.display.set_mode((Maze.MAZE_DISPLAY_W, Maze.MAZE_DISPLAY_H))
-running = True
-
-maze = Maze(50,50,(0,0),(49,49),window=window,diagonal=False)
-print(maze.navigation_map)
-
-path_astar = maze.solve(maze.a_star)
-path_dijkstra = maze.solve(maze.Dijkstra)
-
-print(len(path_astar))
-print(len(path_dijkstra))
-
-
-while(running):
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    pygame.display.flip()
-
+def run_dijkstra_bi(maze, start, end):
+    """Lance Dijkstra bidirectionnel et retourne (path, temps_ms, nodes_explored)."""
+    t0 = time.perf_counter()
+    path = maze.Dijkstra_Bi_Simple(start, end)
+    t_ms = (time.perf_counter() - t0) * 1000
+    nodes_explored = getattr(maze, '_last_nodes_explored', 0)
+    return path or [], t_ms, nodes_explored
 
 def run_astar_bi(maze, start, end):
     """Lance A* bidirectionnel et retourne (path, temps_ms, nodes_explored)."""
