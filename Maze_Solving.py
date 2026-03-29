@@ -105,6 +105,11 @@ class Maze:
             number_nodes_explored +=1
             current_entry = heapq.heappop(heap)
             current_tile = current_entry[1]
+
+            # Skip non-walkable tiles
+            if not self.is_walkeable(current_tile[0], current_tile[1]):
+                continue
+
             nodes_explored.append(current_tile)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
@@ -136,6 +141,11 @@ class Maze:
             number_nodes_explored +=1
             current_entry = heapq.heappop(heap)
             current_tile = current_entry[1]
+
+            # Skip non-walkable tiles
+            if not self.is_walkeable(current_tile[0], current_tile[1]):
+                continue
+
             nodes_explored.append(current_tile)
             if(current_tile==end):
                 path = self.returnPath(origins,start,end)
@@ -262,12 +272,16 @@ class Maze:
             if current_tile in visited1:
                 continue
 
+            # Only process walkable tiles
+            if not self.is_walkeable(current_tile[0], current_tile[1]):
+                continue
+
             visited1.add(current_tile)
             nodes_explored1.append(current_tile)
             periphery_start = current_tile
 
             for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
-                if neighbor not in visited1:
+                if neighbor not in visited1 and self.is_walkeable(neighbor[0], neighbor[1]):
                     temp_g = g_scores1[current_tile] + self.reward_map[neighbor]
                     if neighbor not in g_scores1.keys() or temp_g < g_scores1[neighbor]:
                         origins1[neighbor] = current_tile
@@ -300,12 +314,16 @@ class Maze:
             if current_tile in visited2:
                 continue
 
+            # Only process walkable tiles
+            if not self.is_walkeable(current_tile[0], current_tile[1]):
+                continue
+
             visited2.add(current_tile)
             nodes_explored2.append(current_tile)
             periphery_end = current_tile
 
             for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
-                if neighbor not in visited2:
+                if neighbor not in visited2 and self.is_walkeable(neighbor[0], neighbor[1]):
                     temp_g = g_scores2[current_tile] + self.reward_map[neighbor]
                     if neighbor not in g_scores2.keys() or temp_g < g_scores2[neighbor]:
                         origins2[neighbor] = current_tile
@@ -339,6 +357,10 @@ class Maze:
             if current_tile in visited3:
                 continue
 
+            # Only process walkable tiles
+            if not self.is_walkeable(current_tile[0], current_tile[1]):
+                continue
+
             visited3.add(current_tile)
             nodes_explored3.append(current_tile)
 
@@ -349,7 +371,7 @@ class Maze:
                 break
 
             for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
-                if neighbor not in visited3:
+                if neighbor not in visited3 and self.is_walkeable(neighbor[0], neighbor[1]):
                     temp_g = g_scores3[current_tile] + self.reward_map[neighbor]
                     if neighbor not in g_scores3.keys() or temp_g < g_scores3[neighbor]:
                         origins3[neighbor] = current_tile
@@ -458,12 +480,16 @@ class Maze:
             if current_tile in visited1:
                 continue
 
+            # Only process walkable tiles
+            if not self.is_walkeable(current_tile[0], current_tile[1]):
+                continue
+
             visited1.add(current_tile)
             nodes_explored1.append(current_tile)
             periphery_start = current_tile
 
             for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
-                if neighbor not in visited1:
+                if neighbor not in visited1 and self.is_walkeable(neighbor[0], neighbor[1]):
                     temp_g = g_scores1[current_tile] + self.reward_map[neighbor]
                     if neighbor not in g_scores1 or temp_g < g_scores1[neighbor]:
                         origins1[neighbor] = current_tile
@@ -492,12 +518,16 @@ class Maze:
             if current_tile in visited2:
                 continue
 
+            # Only process walkable tiles
+            if not self.is_walkeable(current_tile[0], current_tile[1]):
+                continue
+
             visited2.add(current_tile)
             nodes_explored2.append(current_tile)
             periphery_end = current_tile
 
             for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
-                if neighbor not in visited2:
+                if neighbor not in visited2 and self.is_walkeable(neighbor[0], neighbor[1]):
                     temp_g = g_scores2[current_tile] + self.reward_map[neighbor]
                     if neighbor not in g_scores2 or temp_g < g_scores2[neighbor]:
                         origins2[neighbor] = current_tile
@@ -527,6 +557,10 @@ class Maze:
             if current_tile in visited3:
                 continue
 
+            # Only process walkable tiles
+            if not self.is_walkeable(current_tile[0], current_tile[1]):
+                continue
+
             visited3.add(current_tile)
             nodes_explored3.append(current_tile)
 
@@ -537,7 +571,7 @@ class Maze:
                 break
 
             for neighbor in self.get_neighbors(current_tile[0], current_tile[1]):
-                if neighbor not in visited3:
+                if neighbor not in visited3 and self.is_walkeable(neighbor[0], neighbor[1]):
                     temp_g = g_scores3[current_tile] + self.reward_map[neighbor]
                     if neighbor not in g_scores3 or temp_g < g_scores3[neighbor]:
                         origins3[neighbor] = current_tile

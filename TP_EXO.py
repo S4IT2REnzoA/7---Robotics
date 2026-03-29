@@ -181,6 +181,7 @@ def q2_grands_mazes():
         print(f"\n  Test {name.replace(chr(10), ' ')}...")
         maze = Maze(size, size, (0, 0), (size - 1, size - 1), window=None)
         maze.generateMaze(density)  # Changer la densité d'obstacles
+        maze.generateReward()  # Réinitialiser reward_map avec la nouvelle navigation_map
 
         path, t_ms, nodes = run_dijkstra_bi(maze, (0, 0), (size - 1, size - 1))
         results.append((name.split('\n')[0], size, density, len(path), nodes, t_ms))
